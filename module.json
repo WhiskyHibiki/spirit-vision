@@ -1,0 +1,26 @@
+{
+  "id": "spirit-vision",
+  "title": "Spirit-Vision",
+  "description": "Selective spirit visibility for D&D5e worlds.",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "whisky_hibiki"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "system": ["dnd5e"],
+  "esmodules": [
+    "scripts/spirit-vision.js"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ]
+}
