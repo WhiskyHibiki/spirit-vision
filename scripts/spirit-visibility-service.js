@@ -116,10 +116,12 @@ export class SpiritVisibilityService {
     if (!token?.document) return;
 
     const isSpirit = this.isSpiritToken(token.document);
-    const isVisible = this.canUserSeeToken(game.user, token.document);
+    const spiritVisible = this.canUserSeeToken(game.user, token.document);
 
-    token.visible = isVisible;
-    token.renderable = isVisible;
+    // Preserve Foundry's native LOS / lighting visibility checks.
+    // Spirit Vision may only further restrict visibility, never expand it.
+    const nativeVisible = token.isVisible ?? token.visible;
+    const isVisible = spiritVisible && nativeVisible;
 
     if (token.mesh) token.mesh.visible = isVisible;
     if (token.border) token.border.visible = isVisible;
