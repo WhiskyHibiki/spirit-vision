@@ -59,6 +59,8 @@ export class SpiritVisibilityService {
     if (!token) return;
 
     if (isSpirit) {
+      this.stopHiddenAnimation(token);
+
       if (token.mesh) {
         token.mesh.tint = 0xAEE6FF;
         token.mesh.alpha = 0.55;
@@ -72,6 +74,7 @@ export class SpiritVisibilityService {
       this.startSpiritAnimation(token);
     } else {
       this.stopSpiritAnimation(token);
+      this.stopHiddenAnimation(token);
 
       if (token.mesh) {
         token.mesh.tint = 0xFFFFFF;
@@ -83,6 +86,24 @@ export class SpiritVisibilityService {
       if (token.tooltip) token.tooltip.alpha = 1.0;
       if (token.nameplate) token.nameplate.alpha = 1.0;
     }
+  }
+
+  applyHiddenStyle(token) {
+    if (!token) return;
+
+    this.stopSpiritAnimation(token);
+
+    if (token.mesh) {
+      token.mesh.tint = 0xFFFFFF;
+      token.mesh.alpha = 0.45;
+    }
+
+    if (token.bars) token.bars.alpha = 0.65;
+    if (token.effects) token.effects.alpha = 0.65;
+    if (token.tooltip) token.tooltip.alpha = 0.7;
+    if (token.nameplate) token.nameplate.alpha = 0.8;
+
+    this.startHiddenAnimation(token);
   }
 
   startSpiritAnimation(token) {
@@ -112,6 +133,33 @@ export class SpiritVisibilityService {
     }
   }
 
+  startHiddenAnimation(token) {
+    if (!token?.mesh) return;
+
+    if (token._spiritHiddenTickerFn) return;
+
+    const baseAlpha = 0.45;
+    const amplitude = 0.12;
+    const speed = 0.0025;
+
+    const fn = () => {
+      if (!token?.mesh || token.destroyed) return;
+
+      const t = performance.now() * speed;
+      token.mesh.alpha = baseAlpha + Math.sin(t) * amplitude;
+    };
+
+    token._spiritHiddenTickerFn = fn;
+    PIXI.Ticker.shared.add(fn);
+  }
+
+  stopHiddenAnimation(token) {
+    if (token?._spiritHiddenTickerFn) {
+      PIXI.Ticker.shared.remove(token._spiritHiddenTickerFn);
+      token._spiritHiddenTickerFn = null;
+    }
+  }
+
   applyVisibilityToToken(token) {
     if (!token?.document) return;
 
@@ -121,8 +169,9 @@ export class SpiritVisibilityService {
     // Preserve Foundry's native LOS / lighting visibility checks.
     // Spirit Vision may only further restrict visibility, never expand it.
     const nativeVisible = token.isVisible ?? token.visible;
-    const hiddenByDocument = token.document.hidden === true && !game.user?.isGM;
-    const isVisible = spiritVisible && nativeVisible && !hiddenByDocument;
+    const hiddenForPlayers = token.document.hidden === true && !game.user?.isGM;
+    const isHiddenForGM = token.document.hidden === true && game.user?.isGM;
+    const isVisible = spiritVisible && nativeVisible && !hiddenForPlayers;
 
     if (token.mesh) token.mesh.visible = isVisible;
     if (token.border) token.border.visible = isVisible;
@@ -133,6 +182,12 @@ export class SpiritVisibilityService {
 
     if (!isVisible) {
       this.stopSpiritAnimation(token);
+      this.stopHiddenAnimation(token);
+      return;
+    }
+
+    if (isHiddenForGM) {
+      this.applyHiddenStyle(token);
       return;
     }
 
