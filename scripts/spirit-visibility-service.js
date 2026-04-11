@@ -121,7 +121,8 @@ export class SpiritVisibilityService {
     // Preserve Foundry's native LOS / lighting visibility checks.
     // Spirit Vision may only further restrict visibility, never expand it.
     const nativeVisible = token.isVisible ?? token.visible;
-    const isVisible = spiritVisible && nativeVisible;
+    const hiddenByDocument = token.document.hidden === true && !game.user?.isGM;
+    const isVisible = spiritVisible && nativeVisible && !hiddenByDocument;
 
     if (token.mesh) token.mesh.visible = isVisible;
     if (token.border) token.border.visible = isVisible;
