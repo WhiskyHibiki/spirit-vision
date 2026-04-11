@@ -176,9 +176,12 @@ export class SpiritVisibilityService {
     if (token.mesh) token.mesh.visible = isVisible;
     if (token.border) token.border.visible = isVisible;
     if (token.tooltip) token.tooltip.visible = isVisible;
-    if (token.nameplate) token.nameplate.visible = isVisible;
     if (token.bars) token.bars.visible = isVisible;
     if (token.effects) token.effects.visible = isVisible;
+
+    // Nameplate visibility has Foundry-specific modes (always / hover / owner / never).
+    // Respect those modes by only forcing hidden when token is not visible at all.
+    if (!isVisible && token.nameplate) token.nameplate.visible = false;
 
     if (!isVisible) {
       this.stopSpiritAnimation(token);
